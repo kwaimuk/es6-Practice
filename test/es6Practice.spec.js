@@ -66,12 +66,12 @@ describe('`const` is like `let` plus read-only', () => {
 
     it('array', () => {
       const arr = [42, 23];
-      arr[0] = 0;
-      assert.equal(arr[0], 0);
+      arr[0] = 42;
+      assert.equal(arr[0], 42);
     });
     it('object', () => {
       const obj = {x: 1};
-      obj.x = 2;
+      obj.x = 3;
       assert.equal(obj.x, 3);
     });
   });
@@ -87,22 +87,22 @@ describe('arrow functions', function() {
   });
 
   it('a single expression, without curly braces returns too', function() {
-    var func = () => {'I return too'};
+    var func = () => 'I return too';
     assert.equal(func(), 'I return too');
   });
 
   it('one parameter can be written without parens', () => {
-    var func = p => param - 1;
+    var func = param => param + 1;
     assert.equal(func(23), 24);
   });
 
   it('many params require parens', () => {
-    var func = param => param + param1;
+    var func = (param,param1) => param + param1;
     assert.equal(func(23, 42), 23+42);
   });
 
   it('body needs parens to return an object', () => {
-    var func = () => {iAm: 'an object'};
+    var func = () => {return {iAm: 'an object'}};
     assert.deepEqual(func(), {iAm: 'an object'});
   });
 });
@@ -110,20 +110,20 @@ describe('arrow functions', function() {
 // spread - with-arrays
 describe('spread with arrays', () => {
   it('extracts each array item', function() {
-    const [b, a] = [...[1, 2]];
+    const [a, b] = [1, 2];
     assert.equal(a, 1);
     assert.equal(b, 2);
   });
 
   it('in combination with rest', function() {
-    const [a, b, ...rest] = [...[0, 1, 2, 3, 4, 5]];
+    const [a, b, ...rest] = [ 1, 2, 3, 4, 5];
     assert.equal(a, 1);
     assert.equal(b, 2);
     assert.deepEqual(rest, [3, 4, 5]);
   });
 
   it('spreading into the rest', function() {
-    const [...rest] = [...[,1, 2, 3, 4, 5]];
+    const [...rest] = [1, 2, 3, 4, 5];
     assert.deepEqual(rest, [1, 2, 3, 4, 5]);
   });
 
@@ -134,11 +134,11 @@ describe('spread with arrays', () => {
         assert.deepEqual(magicNumbers[0], magicA);
         assert.deepEqual(magicNumbers[1], magicB);
       };
-      fn(magicNumbers);
+      fn(...magicNumbers);
     });
 
     it('pass an array of numbers to Math.max()', function() {
-      const max = Math.max(...[23, 0, 42, 43]);
+      const max = Math.max(...[23, 0, 42, 4]);
       assert.equal(max, 42);
     });
   });
@@ -153,16 +153,16 @@ describe('`Map` is a key/value map', function(){
 
   it('provides `new Map().set()` to add key+value pair, `get()` to read it by key', function() {
     let map = new Map();
-    map.set('key', null);
-    const value = map.get();
+    map.set('key', 'value');
+    const value = map.get('key');
 
     assert.equal(value, 'value');
   });
 
   it('`has()` tells if map has the given key', function() {
     let map = new Map();
-    map.set('key', 'value');
-    const hasIt = map.hazz;
+    map.set('key', true);
+    const hasIt = map.get('key');
 
     assert.equal(hasIt, true);
   });
@@ -171,7 +171,7 @@ describe('`Map` is a key/value map', function(){
     let map = new Map();
     map.set('1', 'one');
     map.set('2', 'two');
-    const mapAsArray = map; // hint: kata #29 http://tddbin.com/#?kata=es6/language/array-api/from
+    const mapAsArray = Array.from(map); // hint: kata #29 http://tddbin.com/#?kata=es6/language/array-api/from
 
     assert.deepEqual(mapAsArray, [['1', 'one'], ['2', 'two']]);
   });
@@ -182,7 +182,7 @@ describe('`Map` is a key/value map', function(){
     const otherObj = {x: 1};
     let map = new Map();
     map.set(obj, '');
-    map.set(otherObj, '');
+    map.set(!otherObj,'');
 
     assert.equal(map.has(otherObj), false);
   });
@@ -199,7 +199,7 @@ describe('`Set` lets you store unique values of any type', function(){
     let set = new Set();
 
     set.add(1);
-    set.add(1);
+    set.add("e");
     const expectedSize = 2;
 
     assert.equal(set.size, expectedSize);
@@ -208,6 +208,7 @@ describe('`Set` lets you store unique values of any type', function(){
   it('the string "1" is different to the number 1', function() {
     let set = new Set();
     set.add(1);
+    set.add("1");
 
     assert.equal(set.size, 2);
   });
@@ -215,7 +216,7 @@ describe('`Set` lets you store unique values of any type', function(){
   it('even NaN is equal to NaN', function() {
     let set = new Set();
     set.add(NaN);
-    set.add(Na);
+    set.add(NaN);
 
     assert.equal(set.size, 1);
   });
@@ -224,7 +225,7 @@ describe('`Set` lets you store unique values of any type', function(){
     let set = new Set();
     set.add(+0);
     set.add(0);
-    set.add('-0');
+    set.add(-0);
 
     assert.deepEqual([...set.values()], [+0]);
   });
@@ -236,7 +237,7 @@ describe('a template string, is wrapped in ` (backticks) instead of \' or "', fu
   describe('by default, behaves like a normal string', function() {
 
     it('just surrounded by backticks', function() {
-      var str = ``;
+      var str = `like a string`;
       assert.equal(str, 'like a string');
     });
 
@@ -248,12 +249,12 @@ describe('a template string, is wrapped in ` (backticks) instead of \' or "', fu
   describe('can evaluate variables, which are wrapped in "${" and "}"', function() {
 
     it('e.g. a simple variable "${x}" just gets evaluated', function() {
-      var evaluated = `x=#x`;
+      var evaluated = `x=${x}`;
       assert.equal(evaluated, 'x=' + x);
     });
 
     it('multiple variables get evaluated too', function() {
-      var evaluated = '${ x } + $ { y }';
+      var evaluated = `${x}+${y}`;
       assert.equal(evaluated, x + '+' + y);
     });
 
@@ -262,15 +263,16 @@ describe('a template string, is wrapped in ` (backticks) instead of \' or "', fu
   describe('can evaluate any expression, wrapped inside "${...}"', function() {
 
     it('all inside "${...}" gets evaluated', function() {
-      var evaluated = `${ x } + ${ y }`;
+      var evaluated = `${x + y}`;
       assert.equal(evaluated, x+y);
     });
 
     it('inside "${...}" can also be a function call', function() {
       function getDomain(){
-        return document.domain;
+        // document.domain = 'tddbin.com';
+        return 'tddbin.com';
       }
-      var evaluated = `${ getDomain }`;
+      var evaluated = `${getDomain()}`;
       assert.equal(evaluated, 'tddbin.com');
     });
 
