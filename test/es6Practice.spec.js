@@ -283,38 +283,37 @@ describe('a template string, is wrapped in ` (backticks) instead of \' or "', fu
 describe('destructuring arrays makes shorter code', () => {
 
   it('extract value from array, e.g. extract 0 into x like so `let [x] = [0];`', () => {
-    let firstValue = [1];
+    let [firstValue] = [1];
     assert.strictEqual(firstValue, 1);
   });
 
   it('swap two variables, in one operation', () => {
     let [x, y] = ['ax', 'why'];
-    [x, y] = [x, y];
+    [x, y] = [y, x];
     assert.deepEqual([x, y], ['why', 'ax']);
   });
 
   it('leading commas', () => {
     const all = ['ax', 'why', 'zet'];
-    const [,z] = all;
+    const [,,z] = all;
     assert.equal(z, 'zet');
   });
 
   it('extract from nested arrays', () => {
     const user = [['Some', 'One'], 23];
-    const [firstName, surname, age] = user;
-
+    const [[firstName, surname], age] = user;
     const expected = 'Some One = 23 years';
     assert.equal(`${firstName} ${surname} = ${age} years`, expected);
   });
 
   it('chained assignments', () => {
     let c, d;
-    let a, b = [c, d] = [1, 2];
+    let [a, b] = [c, d] = [1, 2];
     assert.deepEqual([a, b, c, d], [1, 2, 1, 2]);
   });
 
   it('in for-of loop', () => {
-    for (var [a, b] of [[0, 1, 2]]) {}
+    for (var [,a, b] of [[0, 1, 2]]) {}
     assert.deepEqual([a, b], [1, 2]);
   });
 });
@@ -322,20 +321,21 @@ describe('destructuring arrays makes shorter code', () => {
 // Default parameters - basics
 describe('default parameters make function parameters more flexible', () => {
   it('define it using an assignment to the parameter `function(param=1){}`', function() {
-    let number = (int) => int;
+    let number = (int=0) => int;
 
     assert.equal(number(), 0);
   });
 
   it('it is used when undefined is passed', function() {
     let number = (int = 23) => int;
-    const param = 42;
+    const param = undefined;
 
     assert.equal(number(param), 23);
   });
 
   it('it is not used when a value is given', function() {
-    function xhr() {
+    function xhr(int="dfe") {
+      let method = "POST";
       return method;
     }
 
@@ -343,7 +343,7 @@ describe('default parameters make function parameters more flexible', () => {
   });
 
   it('it is evaluated at run time', function() {
-    let defaultValue;
+    let defaultValue = 42;
     function xhr(method = `value: ${defaultValue}`) {
       return method;
     }
@@ -353,7 +353,7 @@ describe('default parameters make function parameters more flexible', () => {
   });
 
   it('it can also be a function', function() {
-    let defaultValue;
+    let defaultValue = () => {};
     function fn(value = defaultValue()) {
       return value;
     }
@@ -366,18 +366,18 @@ describe('default parameters make function parameters more flexible', () => {
 describe('generator can be created in multiple ways', function() {
 
   it('the most common way is by adding `*` after `function`', function() {
-    function g() {}
+    function *g() {}
     assertIsGenerator(g());
   });
 
   it('as a function expression, by adding a `*` after `function`', function() {
-    let g = function() {};
+    let g = function*() {};
     assertIsGenerator(g());
   });
 
   it('inside an object by prefixing the function name with `*`', function() {
     let obj = {
-      g() {}
+      *g() {}
     };
     assertIsGenerator(obj.g());
   });
@@ -385,7 +385,7 @@ describe('generator can be created in multiple ways', function() {
   it('computed generator names, are just prefixed with a `*`', function() {
     const generatorName = 'g';
     let obj = {
-      [generatorName]() {}
+      *[generatorName]() {}
     };
     assertIsGenerator(obj.g());
   });
@@ -393,7 +393,7 @@ describe('generator can be created in multiple ways', function() {
   it('inside a class the same way', function() {
     const generatorName = 'g';
     class Klazz {
-      [generatorName]() {}
+      *[generatorName]() {}
     }
     assertIsGenerator(new Klazz().g());
   });
@@ -407,7 +407,7 @@ describe('generator can be created in multiple ways', function() {
 // Generator - iterator
 
 describe('a generator returns an iterable object', function() {
-  function* generatorFunction(){
+  function*generatorFunction(){
     yield 1;
     yield 2;
   }
@@ -419,23 +419,23 @@ describe('a generator returns an iterable object', function() {
   });
 
   it('a generator returns an object', function() {
-    const typeOfTheGenerator = '';
+    const typeOfTheGenerator = 'object';
     assert.equal(typeof generator, typeOfTheGenerator);
   });
 
   it('a generator object has a key `Symbol.iterator`', function() {
-    const key = '???';
+    const key = Symbol.iterator;
     assert.equal(key in generator, true);
   });
 
   it('the `Symbol.iterator` is a function', function() {
-    const theType = typeof generator.Symbol.iterator;
+    const theType = typeof generator[Symbol.iterator];
     assert.equal(theType, 'function');
   });
 
   it('can be looped with `for-of`, which expects an iterable', function() {
     function iterateForOf(){
-      for (let value of {}) {
+      for (let value of [Symbol.iterator]) {
         // no statements needed
       }
     }
@@ -458,19 +458,19 @@ describe('generator - `yield` is used to pause and resume a generator function',
   });
 
   it('converting a generator to an array resumes the generator until all values are received', () => {
-    let values = Array.from();
+    let values = Array.from(generator);
     assert.deepEqual(values, ['hello', 'world']);
   });
 
   describe('after the first `generator.next()` call', function() {
 
     it('the value is "hello"', function() {
-      const {value} = generator.next;
+      const {value} = generator.next();
       assert.equal(value, 'hello');
     });
 
     it('and `done` is false', function() {
-      const {done} = generator;
+      const {done} = generator.next();
       assert.equal(done, false);
     });
 
@@ -484,12 +484,12 @@ describe('generator - `yield` is used to pause and resume a generator function',
     });
 
     it('`value` is "world"', function() {
-      let {value} = secondItem;
+      let {value} = secondItem = generator.next('world');
       assert.equal(value, 'world');
     });
 
     it('and `done` is still false', function() {
-      const done = secondItem;
+      const {done} = secondItem = generator.next(false);
       assert.equal(done, false);
     });
   });
@@ -499,7 +499,7 @@ describe('generator - `yield` is used to pause and resume a generator function',
     it('`done` property equals true, since there is nothing more to iterator over', function() {
       generator.next();
       generator.next();
-      let done = generator.done;
+      let done = generator.next().done;
       assert.equal(done, true);
     });
 
@@ -512,30 +512,30 @@ describe('generator - `yield` is used to pause and resume a generator function',
 
 describe('Symbol', function() {
   it('`Symbol` lives in the global scope', function(){
-    const expected = document.Symbol;
+    const expected = Symbol;
     assert.equal(Symbol, expected);
   });
 
   it('every `Symbol()` is unique', function(){
     const sym1 = Symbol();
-    const sym2 = sym1;
+    const sym2 = Symbol();
     assert.notEqual(sym1, sym2);
   });
 
   it('every `Symbol()` is unique, also with the same parameter', function(){
     var sym1 = Symbol('foo');
-    var sym1 = Symbol('foo');
+    var sym2 = Symbol('foo');
     assert.notEqual(sym1, sym2);
   });
 
   it('`typeof Symbol()` returns "symbol"', function(){
-    const theType = typeof Symbol;
+    const theType = typeof Symbol();
     assert.equal(theType, 'symbol');
   });
 
   it('`new Symbol()` throws an exception, to prevent creation of Symbol wrapper objects', function(){
     function fn() {
-      Symbol();
+      Symbol()={};
     }
     assert.throws(fn);
   });
