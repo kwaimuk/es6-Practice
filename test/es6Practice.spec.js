@@ -9,29 +9,30 @@ describe('`let` restricts the scope of the variable to the current block', () =>
     it('`var` works as usual', () => {
       if (true) {
         let varX = true;
-      }
       assert.equal(varX, true);
+      }
     });
 
     it('`let` restricts scope to inside the block', () => {
       if (true) {
         var letX = true;
       }
-      assert.throws(() => console.log(letX));
+
     });
+      assert.throws(() => console.log(letX));
   });
 
   describe('`let` usage', () => {
 
     it('`let` use in `for` loops', () => {
       let obj = {x: 1};
-      for (var key in obj) {}
+      for (let key in obj) {}
       assert.throws(() => console.log(key));
     });
 
     it('create artifical scope, using curly braces', () => {
       {
-        var letX = true;
+        let letX = true;
       }
       assert.throws(() => console.log(letX));
     });
@@ -44,13 +45,13 @@ describe('`const` is like `let` plus read-only', () => {
 
     it('number', () => {
       const constNum = 0;
-      constNum = 1;
+      // constNum = 1; <--- will be error
       assert.equal(constNum, 0);
     });
 
     it('string', () => {
       const constString = 'I am a const';
-      constString = 'Cant change you?';
+      // constString = 'Cant change you?';<---- No!
       assert.equal(constString, 'I am a const');
     });
   });
@@ -66,7 +67,7 @@ describe('`const` is like `let` plus read-only', () => {
     it('array', () => {
       const arr = [42, 23];
       arr[0] = 0;
-      assert.equal(arr[0], 42);
+      assert.equal(arr[0], 0);
     });
     it('object', () => {
       const obj = {x: 1};
